@@ -3,6 +3,8 @@ This repository is forked from JEM - Joint Energy Models (Grathwohl et. al. 2019
 
 We would like to thank the JEM authors for not only an excellant paper but for providing their code which simplified the implementation of NG-EBM and allowed us to contrast the methods.
 
+A pretrained NG-EBM model on CIFAR10 can be found [here](http://www.crc.nd.edu/~csweet1/CIFAR10_MODEL.pt).
+
 ## Usage
 ### Training
 To train a model on CIFAR10 modified for the NG-EBM paper
