@@ -1,7 +1,7 @@
 # NG-EBM - Non-generative Energy Based Models
 This repository is forked from JEM - Joint Energy Models (Grathwohl et. al. 2019) and contains modified code to train and evaluate our Non-generative Energy Based Models method.
 
-We would like to thank the JEM authors for not only an excellant paper but for providing their code which simplified the implementation of NG-EBM and allowed us to contrast the method.
+We would like to thank the JEM authors for not only an excellant paper but for providing their code which simplified the implementation of NG-EBM and allowed us to contrast the methods.
 
 ## Usage
 ### Training
