@@ -368,6 +368,138 @@ def test_clf(f, args, device):
     t.save({"losses": losses, "corrects": corrects, "pys": pys}, os.path.join(args.save_dir, "vals.pt"))
     print(loss, correct)
 
+def pri_energy(f, args, device):
+    transform_test = tr.Compose(
+        [tr.ToTensor(),
+         tr.Normalize((.5, .5, .5), (.5, .5, .5)),
+         lambda x: x + t.randn_like(x) * args.sigma]
+    )
+
+    def sample(x, n_steps=args.n_steps):
+        x_k = t.autograd.Variable(x.clone(), requires_grad=True)
+        # sgld
+        for k in range(n_steps):
+            f_prime = t.autograd.grad(f(x_k).sum(), [x_k], retain_graph=True)[0]
+            x_k.data += f_prime + 1e-2 * t.randn_like(x_k)
+        final_samples = x_k.detach()
+        return final_samples
+
+    if args.dataset == "cifar_train":
+        dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=True)
+    elif args.dataset == "cifar_test":
+        dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False)
+    elif args.dataset == "svhn_train":
+        dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="train")
+    else:  # args.dataset == "svhn_test":
+        dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="test")
+
+    dload = DataLoader(dset, batch_size=100, shuffle=False, num_workers=4, drop_last=False)
+
+    energies, corrects, losses, pys, preds = [], [], [], [], []
+    for x_p_d, y_p_d in tqdm(dload):
+        x_p_d, y_p_d = x_p_d.to(device), y_p_d.to(device)
+        if args.n_steps > 0:
+            x_p_d = sample(x_p_d)
+        logits = f.classify(x_p_d)
+
+        
+        py = nn.Softmax()(f.classify(x_p_d)).max(1)[0].detach().cpu().numpy()
+        
+        loss = nn.CrossEntropyLoss(reduce=False)(logits, y_p_d).cpu().detach().numpy()
+        losses.extend(loss)
+        
+        correct = (logits.max(1)[1] == y_p_d).float().cpu().numpy()        
+        corrects.extend(correct)
+
+        energy = logits.logsumexp(dim=1, keepdim=False).cpu().detach().numpy()
+        energies.extend(energy)
+        
+
+    loss = np.mean(losses)
+    correct = np.mean(corrects)
+    
+    e_mean = np.mean(energies)
+    e_var = np.var(energies)
+    
+    print(e_mean, e_var, np.sqrt(e_var))
+    
+    # save energies in a text file
+    import pandas as pd     
+    pd.DataFrame(energies).to_csv(os.path.join(args.save_dir, "energies.csv"))
+
+def calibration(f, args, device):
+    transform_test = tr.Compose(
+        [tr.ToTensor(),
+         tr.Normalize((.5, .5, .5), (.5, .5, .5))]#,
+         #lambda x: x + t.randn_like(x) * 0. #args.sigma]
+    )
+
+    def sample(x, n_steps=args.n_steps):
+        x_k = t.autograd.Variable(x.clone(), requires_grad=True)
+        # sgld
+        for k in range(n_steps):
+            f_prime = t.autograd.grad(f(x_k).sum(), [x_k], retain_graph=True)[0]
+            x_k.data += f_prime + 1e-2 * t.randn_like(x_k)
+        final_samples = x_k.detach()
+        return final_samples
+    print("!Cifar100")
+    if args.dataset == "cifar_train":
+        dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=True)
+    elif args.dataset == "cifar_test":
+        dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False)
+    elif args.dataset == "svhn_train":
+        dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="train") 
+    elif args.dataset == "cifar_100":
+        print("!Cifar1001")
+        dset = tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False)
+    else:  # args.dataset == "svhn_test":
+        dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="test")
+
+    dload = DataLoader(dset, batch_size=1, shuffle=False, num_workers=4, drop_last=False)
+
+    start=0.05
+    step=.05
+    num=20
+
+    bins=np.arange(0,num)*step+start+ 1e-10
+    bin_total = np.zeros(20)+1e-5
+    bin_correct = np.zeros(20)
+
+    #energies, corrects, losses, pys, preds = [], [], [], [], []
+    
+    for x_p_d, y_p_d in tqdm(dload):
+        x_p_d, y_p_d = x_p_d.to(device), y_p_d.to(device)
+
+        logits = f.classify(x_p_d).detach().cpu()#.numpy()
+
+        py = nn.Softmax()(logits)[0].numpy()#(f.classify(x_p_d)).max(1)[0].detach().cpu().numpy()
+        
+        expected = y_p_d[0].detach().cpu().numpy()
+        
+        actual = logits.max(1)[1][0].numpy()
+        
+        #print(py[expected],expected,py[actual],actual)
+        
+        inds = np.digitize(py[actual], bins)
+        bin_total[inds] += 1
+        if actual == expected:
+            bin_correct[inds] += 1
+            
+    #
+    accu = np.divide(bin_correct,bin_total)
+    print("Bin data",np.sum(bin_total),accu,bins,bin_total)
+    
+    # calc ECE
+    ECE = 0.0
+    for i in range(20):
+        #print("accu",accu[i],(i/20.0 + 0.025),bin_total[i])
+        ECE += (float(bin_total[i]) / float(np.sum(bin_total))) * abs(accu[i] - (i/20.0 + 0.025))
+        
+    print("ECE", ECE)
+    
+    # save calibration  in a text file
+    import pandas as pd     
+    pd.DataFrame({'accuracy': accu, 'ECE': ECE}).to_csv(os.path.join(args.save_dir, "calibration.csv"))
 
 def main(args):
     utils.makedirs(args.save_dir)
@@ -396,6 +528,12 @@ def main(args):
 
     if args.eval == "test_clf":
         test_clf(f, args, device)
+
+    if args.eval == "pri_energy":
+        pri_energy(f, args, device)
+        
+    if args.eval == "calibration":
+        calibration(f, args, device)
 
     if args.eval == "cond_samples":
         cond_samples(f, replay_buffer, args, device, args.fresh_samples)
