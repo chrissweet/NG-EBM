@@ -307,9 +307,50 @@ def main(args):
 
             x_p_d = x_p_d.to(device)
             x_lab, y_lab = dload_train_labeled.__next__()
+
+            # setup for differentiating energy w.r.t. images
+            if args.energy_derivative_loss > 0.0:
+                x_lab = t.autograd.Variable(x_lab, requires_grad=True)
+
             x_lab, y_lab = x_lab.to(device), y_lab.to(device)
 
             L = 0.
+
+            # get logits for calculations
+            logits = f.classify(x_lab)
+
+            ############################################################
+            # NG-EBM. Maximize entropy by assuming equal probabilities #
+            ############################################################
+            energy = logits.logsumexp(dim=1, keepdim=False) #.cpu().detach().numpy()
+            
+            e_mean = t.mean(energy)
+            
+            # calcultae loss, changed to mean so independent of batch size
+            energy_loss = t.mean((e_mean - energy)**2) #(e_mean - fq) #t.mean((e_mean - energy)**2) #
+                
+            if args.energy_variance_loss > 0.0:
+                L += args.energy_variance_loss * energy_loss
+
+            #################################
+            # NG-EBM minimize d log p(x)/dx #
+            #################################
+            if args.energy_derivative_loss > 0.0:
+
+                # get gradient of energy w.r.t. images
+                f_prime = t.autograd.grad(energy.sum(), x_lab, create_graph=True)[0] #, retain_graph=True
+
+                # reshape
+                grad = f_prime.view(x_lab.size(0), -1)
+                
+                # calculate loss
+                dlogpx_dx_loss = t.mean(grad.norm(p=2, dim=1)) #t.sum(f_prime.norm(p=2, dim=1))
+
+                L += args.energy_derivative_loss * dlogpx_dx_loss
+
+            ########
+            # SGLD #
+            ########
             if args.p_x_weight > 0:  # maximize log p(x)
                 if args.class_cond_p_x_sample:
                     assert not args.uncond, "can only draw class-conditional samples if EBM is class-cond"
@@ -329,8 +370,11 @@ def main(args):
                                                                                                    fp - fq))
                 L += args.p_x_weight * l_p_x
 
+            ######################################
+            # normal cross entropy loss function #
+            ######################################
             if args.p_y_given_x_weight > 0:  # maximize log p(y | x)
-                logits = f.classify(x_lab)
+                #logits = f.classify(x_lab) moved so can be used for NG-EBM
                 l_p_y_given_x = nn.CrossEntropyLoss()(logits, y_lab)
                 if cur_iter % args.print_every == 0:
                     acc = (logits.max(1)[1] == y_lab).float().mean()
@@ -391,6 +435,12 @@ def main(args):
                 # test set
                 correct, loss = eval_classification(f, dload_test, device)
                 print("Epoch {}: Test Loss {}, Test Acc {}".format(epoch, loss, correct))
+                # NG-EBM
+                if args.energy_derivative_loss > 0.0:
+                    print("dlogpx_dx_loss", dlogpx_dx_loss, "energy loss", energy_loss)
+                else: #if args.energy_variance_loss > 0.0:
+                    print("energy loss", energy_loss)
+
             f.train()
         checkpoint(f, replay_buffer, "last_ckpt.pt", args, device)
 
@@ -415,7 +465,7 @@ if __name__ == "__main__":
     parser.add_argument("--warmup_iters", type=int, default=-1,
                         help="number of iters to linearly increase learning rate, if -1 then no warmmup")
     # loss weighting
-    parser.add_argument("--p_x_weight", type=float, default=1.)
+    parser.add_argument("--p_x_weight", type=float, default=0.)
     parser.add_argument("--p_y_given_x_weight", type=float, default=1.)
     parser.add_argument("--p_x_y_weight", type=float, default=0.)
     # regularization
@@ -449,6 +499,9 @@ if __name__ == "__main__":
     parser.add_argument("--plot_cond", action="store_true", help="If set, save class-conditional samples")
     parser.add_argument("--plot_uncond", action="store_true", help="If set, save unconditional samples")
     parser.add_argument("--n_valid", type=int, default=5000)
+    # NG-EBM, \beta, \gamma in paper
+    parser.add_argument("--energy_variance_loss", type=float, default=1.)
+    parser.add_argument("--energy_derivative_loss", type=float, default=1.)
 
     args = parser.parse_args()
     args.n_classes = 100 if args.dataset == "cifar100" else 10
