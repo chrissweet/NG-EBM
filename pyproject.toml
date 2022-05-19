@@ -1,0 +1,42 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "Chris Sweet", email = "csweet1@nd.edu"},
+]
+dependencies = [
+    "numpy",
+    "torch",
+    "jupyter",
+    "torchvision",
+    "nbconvert",
+    "matplotlib",
+    "tqdm",
+    "scipy",
+    "seaborn",
+    "foolbox==1.8",
+    "sklearn",
+    "dvc[gdrive]>=2.10.2",
+]
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+[project.urls]
+Homepage = ""
+
+[tool]
+[tool.pdm]
+[tool.pdm.scripts]
+# GPU-cd9fc94f-da4f-5155-4f89-4cac9a203a17 (4000) GPU-ce287fef-4126-7d8b-3505-92059423fbf2 or GPU-8fb5d2e5-b03b-8fad-72ef-6adae0ac7370
+_.env = {JUPYTER_DATA_DIR = "__pypackages__/3.8/share/jupyter", CUDA_VISIBLE_DEVICES = "GPU-cd9fc94f-da4f-5155-4f89-4cac9a203a17"}
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[[tool.pdm.source]]
+url = "https://download.pytorch.org/whl/cu113/torch_stable.html"
+verify_ssl = true
+name = "pytorch"
+type = "find_links"
