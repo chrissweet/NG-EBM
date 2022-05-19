@@ -407,7 +407,7 @@ def main(args):
             optim.step()
             cur_iter += 1
 
-            if cur_iter % 100 == 0:
+            if args.p_x_weight > 0 and cur_iter % 100 == 0:
                 if args.plot_uncond:
                     if args.class_cond_p_x_sample:
                         assert not args.uncond, "can only draw class-conditional samples if EBM is class-cond"
