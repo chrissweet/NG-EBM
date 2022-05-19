@@ -439,9 +439,9 @@ def main(args):
                 print("Epoch {}: Test Loss {}, Test Acc {}".format(epoch, loss, correct))
                 # NG-EBM
                 if args.energy_derivative_loss > 0.0:
-                    print("dlogpx_dx_loss", dlogpx_dx_loss, "energy loss", energy_loss)
+                    print("Epoch {}: dlogpx_dx_loss {}, energy loss {}".format(epoch, dlogpx_dx_loss, energy_loss))
                 else: #if args.energy_variance_loss > 0.0:
-                    print("energy loss", energy_loss)
+                    print("Epoch {}: energy loss {}".format(epoch, energy_loss))
 
             f.train()
         checkpoint(f, replay_buffer, "last_ckpt.pt", args, device)
