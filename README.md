@@ -37,6 +37,8 @@ python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval calibration --d
 
 ### Attacks
 
+Note that this requires foolbox 1.8.
+
 To run Linf attacks on JEM-1
 ```markdown
 python attack_model.py --start_batch 0 --end_batch 6 --load_path /PATH/TO/YOUR/MODEL.pt --exp_name /YOUR/EXP/NAME --n_steps_refine 1 --distance Linf --random_init --n_dup_chains 5 --base_dir /PATH/TO/YOUR/EXPERIMENTS/DIRECTORY
