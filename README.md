@@ -26,19 +26,14 @@ To generate a histogram of OOD scores like Table 2
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval logp_hist --datasets cifar10 svhn --save_dir /YOUR/HIST/FOLDER
 ```
-To generate new unconditional samples
+To calculate energies for a data set and save as ```energies.csv```
 ```markdown
-python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval uncond_samples --save_dir /YOUR/SAVE/DIR --n_sample_steps {THE_MORE_THE_BETTER (1000 minimum)} --buffer_size 10000 --n_steps 40 --print_every 100 --reinit_freq 0.05
+python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval pri_energy --dataset cifar_test --save_dir /YOUR/SAVE/DIR 
 ```
-To generate conditional samples from a saved replay buffer
+To calculate the binned calibration and save as ```calibration.csv```
 ```markdown
-python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval cond_samples --save_dir /YOUR/SAVE/DIR
+python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval calibration --dataset cifar_test --save_dir /YOUR/SAVE/DIR
 ```
-To generate new conditional samples
-```markdown
-python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval cond_samples --save_dir /YOUR/SAVE/DIR --n_sample_steps {THE_MORE_THE_BETTER (1000 minimum)} --buffer_size 10000 --n_steps 40 --print_every 10 --reinit_freq 0.05 --fresh_samples
- ```
-
 
 ### Attacks
 
