@@ -39,11 +39,11 @@ python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval calibration --d
 
 Note that this requires foolbox 1.8.
 
-To run Linf attacks on JEM-1
+To run Linf attacks on NG-EBM
 ```markdown
 python attack_model.py --start_batch 0 --end_batch 6 --load_path /PATH/TO/YOUR/MODEL.pt --exp_name /YOUR/EXP/NAME --n_steps_refine 1 --distance Linf --random_init --n_dup_chains 5 --base_dir /PATH/TO/YOUR/EXPERIMENTS/DIRECTORY
 ```
-To run L2 attacks on JEM-1
+To run L2 attacks on NG-EBM
 ```markdown
 python attack_model.py --start_batch 0 --end_batch 6 --load_path /cloud_storage/BEST_EBM.pt --exp_name rerun_ebm_1_step_5_dup_l2_no_sigma_REDO --n_steps_refine 1 --distance L2 --random_init --n_dup_chains 5 --sigma 0.0 --base_dir /cloud_storage/adv_results &
  ```
