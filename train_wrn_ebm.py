@@ -463,7 +463,7 @@ if __name__ == "__main__":
                         help="number of labeled examples per class, if zero then use all labels")
     parser.add_argument("--optimizer", choices=["adam", "sgd"], default="adam")
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--n_epochs", type=int, default=200)
+    parser.add_argument("--n_epochs", type=int, default=150)
     parser.add_argument("--warmup_iters", type=int, default=-1,
                         help="number of iters to linearly increase learning rate, if -1 then no warmmup")
     # loss weighting
