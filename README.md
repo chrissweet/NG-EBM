@@ -9,7 +9,7 @@ A pretrained NG-EBM model on CIFAR10 can be found [here](http://www.crc.nd.edu/~
 ### Training
 To train a model on CIFAR10 modified for the NG-EBM paper
 ```markdown
-python train_wrn_ebm.py --lr .0001 --dataset cifar10 --optimizer adam --energy_variance_loss 1.0 --energy_derivative_loss 1.0 --p_x_weight 0.0 --p_y_given_x_weight 1.0 --p_x_y_weight 0.0 --sigma .03 --width 10 --depth 28 --save_dir /YOUR/SAVE/DIR --plot_uncond --warmup_iters 1000
+python train_wrn_ebm.py --lr .0001 --dataset cifar10 --optimizer adam --energy_variance_loss 1.0 --energy_derivative_loss 1.0 --p_x_weight 0.0 --p_y_given_x_weight 1.0 --p_x_y_weight 0.0 --sigma .03 --width 10 --depth 28 --save_dir /YOUR/SAVE/DIR --warmup_iters 1000
 ```
 
 ### Evaluation
