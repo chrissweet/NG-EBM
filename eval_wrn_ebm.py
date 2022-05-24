@@ -34,7 +34,7 @@ t.backends.cudnn.enabled = True
 seed = 1
 im_sz = 32
 n_ch = 3
-n_classes = 10
+#n_classes = 10
 
 
 class DataSubset(Dataset):
@@ -53,11 +53,11 @@ class DataSubset(Dataset):
 
 
 class F(nn.Module):
-    def __init__(self, depth=28, width=2, norm=None):
+    def __init__(self, depth=28, width=2, norm=None, n_classes=10):
         super(F, self).__init__()
         self.f = wideresnet.Wide_ResNet(depth, width, norm=norm)
         self.energy_output = nn.Linear(self.f.last_dim, 1)
-        self.class_output = nn.Linear(self.f.last_dim, 10)
+        self.class_output = nn.Linear(self.f.last_dim, n_classes)
 
     def forward(self, x, y=None):
         penult_z = self.f(x)
@@ -69,8 +69,8 @@ class F(nn.Module):
 
 
 class CCF(F):
-    def __init__(self, depth=28, width=2, norm=None):
-        super(CCF, self).__init__(depth, width, norm=norm)
+    def __init__(self, depth=28, width=2, norm=None, n_classes=10):
+        super(CCF, self).__init__(depth, width, norm=norm, n_classes=n_classes)
 
     def forward(self, x, y=None):
         logits = self.classify(x)
@@ -90,82 +90,82 @@ def init_random(bs):
     return t.FloatTensor(bs, 3, 32, 32).uniform_(-1, 1)
 
 
-def sample_p_0(device, replay_buffer, bs, y=None):
-    if len(replay_buffer) == 0:
-        return init_random(bs), []
-    buffer_size = len(replay_buffer) if y is None else len(replay_buffer) // n_classes
-    inds = t.randint(0, buffer_size, (bs,))
-    # if cond, convert inds to class conditional inds
-    if y is not None:
-        inds = y.cpu() * buffer_size + inds
-        assert not args.uncond, "Can't drawn conditional samples without giving me y"
-    buffer_samples = replay_buffer[inds]
-    random_samples = init_random(bs)
-    choose_random = (t.rand(bs) < args.reinit_freq).float()[:, None, None, None]
-    samples = choose_random * random_samples + (1 - choose_random) * buffer_samples
-    return samples.to(device), inds
+# def sample_p_0(device, replay_buffer, bs, y=None):
+#     if len(replay_buffer) == 0:
+#         return init_random(bs), []
+#     buffer_size = len(replay_buffer) if y is None else len(replay_buffer) // n_classes
+#     inds = t.randint(0, buffer_size, (bs,))
+#     # if cond, convert inds to class conditional inds
+#     if y is not None:
+#         inds = y.cpu() * buffer_size + inds
+#         assert not args.uncond, "Can't drawn conditional samples without giving me y"
+#     buffer_samples = replay_buffer[inds]
+#     random_samples = init_random(bs)
+#     choose_random = (t.rand(bs) < args.reinit_freq).float()[:, None, None, None]
+#     samples = choose_random * random_samples + (1 - choose_random) * buffer_samples
+#     return samples.to(device), inds
 
 
-def sample_q(args, device, f, replay_buffer, y=None):
-    """this func takes in replay_buffer now so we have the option to sample from
-    scratch (i.e. replay_buffer==[]).  See test_wrn_ebm.py for example.
-    """
-    f.eval()
-    # get batch size
-    bs = args.batch_size if y is None else y.size(0)
-    # generate initial samples and buffer inds of those samples (if buffer is used)
-    init_sample, buffer_inds = sample_p_0(device, replay_buffer, bs=bs, y=y)
-    x_k = t.autograd.Variable(init_sample, requires_grad=True)
-    # sgld
-    for k in range(args.n_steps):
-        f_prime = t.autograd.grad(f(x_k, y=y).sum(), [x_k], retain_graph=True)[0]
-        x_k.data += args.sgld_lr * f_prime + args.sgld_std * t.randn_like(x_k)
-    f.train()
-    final_samples = x_k.detach()
-    # update replay buffer
-    if len(replay_buffer) > 0:
-        replay_buffer[buffer_inds] = final_samples.cpu()
-    return final_samples
+# def sample_q(args, device, f, replay_buffer, y=None):
+#     """this func takes in replay_buffer now so we have the option to sample from
+#     scratch (i.e. replay_buffer==[]).  See test_wrn_ebm.py for example.
+#     """
+#     f.eval()
+#     # get batch size
+#     bs = args.batch_size if y is None else y.size(0)
+#     # generate initial samples and buffer inds of those samples (if buffer is used)
+#     init_sample, buffer_inds = sample_p_0(device, replay_buffer, bs=bs, y=y)
+#     x_k = t.autograd.Variable(init_sample, requires_grad=True)
+#     # sgld
+#     for k in range(args.n_steps):
+#         f_prime = t.autograd.grad(f(x_k, y=y).sum(), [x_k], retain_graph=True)[0]
+#         x_k.data += args.sgld_lr * f_prime + args.sgld_std * t.randn_like(x_k)
+#     f.train()
+#     final_samples = x_k.detach()
+#     # update replay buffer
+#     if len(replay_buffer) > 0:
+#         replay_buffer[buffer_inds] = final_samples.cpu()
+#     return final_samples
 
 
-def uncond_samples(f, args, device, save=True):
-    sqrt = lambda x: int(t.sqrt(t.Tensor([x])))
-    plot = lambda p, x: tv.utils.save_image(t.clamp(x, -1, 1), p, normalize=True, nrow=sqrt(x.size(0)))
+# def uncond_samples(f, args, device, save=True):
+#     sqrt = lambda x: int(t.sqrt(t.Tensor([x])))
+#     plot = lambda p, x: tv.utils.save_image(t.clamp(x, -1, 1), p, normalize=True, nrow=sqrt(x.size(0)))
 
-    replay_buffer = t.FloatTensor(args.buffer_size, 3, 32, 32).uniform_(-1, 1)
-    for i in range(args.n_sample_steps):
-        samples = sample_q(args, device, f, replay_buffer)
-        if i % args.print_every == 0 and save:
-            plot('{}/samples_{}.png'.format(args.save_dir, i), samples)
-        print(i)
-    return replay_buffer
+#     replay_buffer = t.FloatTensor(args.buffer_size, 3, 32, 32).uniform_(-1, 1)
+#     for i in range(args.n_sample_steps):
+#         samples = sample_q(args, device, f, replay_buffer)
+#         if i % args.print_every == 0 and save:
+#             plot('{}/samples_{}.png'.format(args.save_dir, i), samples)
+#         print(i)
+#     return replay_buffer
 
 
-def cond_samples(f, replay_buffer, args, device, fresh=False):
-    sqrt = lambda x: int(t.sqrt(t.Tensor([x])))
-    plot = lambda p, x: tv.utils.save_image(t.clamp(x, -1, 1), p, normalize=True, nrow=sqrt(x.size(0)))
+# def cond_samples(f, replay_buffer, args, device, fresh=False):
+#     sqrt = lambda x: int(t.sqrt(t.Tensor([x])))
+#     plot = lambda p, x: tv.utils.save_image(t.clamp(x, -1, 1), p, normalize=True, nrow=sqrt(x.size(0)))
 
-    if fresh:
-        replay_buffer = uncond_samples(f, args, device, save=False)
-    n_it = replay_buffer.size(0) // 100
-    all_y = []
-    for i in range(n_it):
-        x = replay_buffer[i * 100: (i + 1) * 100].to(device)
-        y = f.classify(x).max(1)[1]
-        all_y.append(y)
+#     if fresh:
+#         replay_buffer = uncond_samples(f, args, device, save=False)
+#     n_it = replay_buffer.size(0) // 100
+#     all_y = []
+#     for i in range(n_it):
+#         x = replay_buffer[i * 100: (i + 1) * 100].to(device)
+#         y = f.classify(x).max(1)[1]
+#         all_y.append(y)
 
-    all_y = t.cat(all_y, 0)
-    each_class = [replay_buffer[all_y == l] for l in range(10)]
-    print([len(c) for c in each_class])
-    for i in range(100):
-        this_im = []
-        for l in range(10):
-            this_l = each_class[l][i * 10: (i + 1) * 10]
-            this_im.append(this_l)
-        this_im = t.cat(this_im, 0)
-        if this_im.size(0) > 0:
-            plot('{}/samples_{}.png'.format(args.save_dir, i), this_im)
-        print(i)
+#     all_y = t.cat(all_y, 0)
+#     each_class = [replay_buffer[all_y == l] for l in range(10)]
+#     print([len(c) for c in each_class])
+#     for i in range(100):
+#         this_im = []
+#         for l in range(10):
+#             this_l = each_class[l][i * 10: (i + 1) * 10]
+#             this_im.append(this_l)
+#         this_im = t.cat(this_im, 0)
+#         if this_im.size(0) > 0:
+#             plot('{}/samples_{}.png'.format(args.save_dir, i), this_im)
+#         print(i)
 
 
 def logp_hist(f, args, device):
@@ -444,7 +444,7 @@ def calibration(f, args, device):
             x_k.data += f_prime + 1e-2 * t.randn_like(x_k)
         final_samples = x_k.detach()
         return final_samples
-    print("!Cifar100")
+    
     if args.dataset == "cifar_train":
         dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=True)
     elif args.dataset == "cifar_test":
@@ -452,7 +452,6 @@ def calibration(f, args, device):
     elif args.dataset == "svhn_train":
         dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="train") 
     elif args.dataset == "cifar_100":
-        print("!Cifar1001")
         dset = tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False)
     else:  # args.dataset == "svhn_test":
         dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="test")
@@ -515,7 +514,7 @@ def main(args):
     device = t.device('cuda' if t.cuda.is_available() else 'cpu')
 
     model_cls = F if args.uncond else CCF
-    f = model_cls(args.depth, args.width, args.norm)
+    f = model_cls(args.depth, args.width, args.norm, n_classes=args.n_classes)
     print(f"loading model from {args.load_path}")
 
     # load em up
@@ -537,11 +536,11 @@ def main(args):
     if args.eval == "calibration":
         calibration(f, args, device)
 
-    if args.eval == "cond_samples":
-        cond_samples(f, replay_buffer, args, device, args.fresh_samples)
+    # if args.eval == "cond_samples":
+    #     cond_samples(f, replay_buffer, args, device, args.fresh_samples)
 
-    if args.eval == "uncond_samples":
-        uncond_samples(f, args, device)
+    # if args.eval == "uncond_samples":
+    #     uncond_samples(f, args, device)
 
     if args.eval == "logp_hist":
         logp_hist(f, args, device)
@@ -549,9 +548,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Energy Based Models and Shit")
+    parser = argparse.ArgumentParser("Energy Based Models")
     parser.add_argument("--eval", default="OOD", type=str,
-                        choices=["uncond_samples", "cond_samples", "logp_hist", "OOD", "test_clf"])
+                        choices=["pri_energy", "calibration", "logp_hist", "OOD", "test_clf"])
     parser.add_argument("--score_fn", default="px", type=str,
                         choices=["px", "py", "pxgrad"], help="For OODAUC, chooses what score function we use.")
     parser.add_argument("--ood_dataset", default="svhn", type=str,
@@ -586,7 +585,8 @@ if __name__ == "__main__":
     parser.add_argument("--fresh_samples", action="store_true",
                         help="If set, then we generate a new replay buffer from scratch for conditional sampling,"
                              "Will be much slower.")
-
+    # classes 10 unless cifar100
+    parser.add_argument("--n_classes", type=int, default=10)
 
     args = parser.parse_args()
     main(args)
