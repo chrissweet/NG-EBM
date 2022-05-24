@@ -219,12 +219,12 @@ def logp_hist(f, args, device):
     datasets = {
         "cifar10": tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False),
         "svhn": tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="test"),
-        "cifar100":tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False),
-        "celeba": tv.datasets.ImageFolder(root="/scratch/gobi1/gwohl/CelebA/splits",
-                                          transform=tr.Compose([tr.Resize(32),
-                                                                tr.ToTensor(),
-                                                                tr.Normalize((.5, .5, .5), (.5, .5, .5)),
-                                                                lambda x: x + args.sigma * t.randn_like(x)]))
+        "cifar100":tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False)#å,
+        # "celeba": tv.datasets.ImageFolder(root="/scratch/gobi1/gwohl/CelebA/splits",
+        #                                   transform=tr.Compose([tr.Resize(32),
+        #                                                         tr.ToTensor(),
+        #                                                         tr.Normalize((.5, .5, .5), (.5, .5, .5)),
+        #                                                         lambda x: x + args.sigma * t.randn_like(x)]))
     }
 
     score_dict = {}
