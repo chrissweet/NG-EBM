@@ -14,11 +14,11 @@ python train_wrn_ebm.py --lr .0001 --dataset cifar10 --optimizer adam --energy_v
 
 ### Evaluation
 
-To evaluate the classifier (on CIFAR10):
+To evaluate the classifier (on cifar10, for cifar100 use ```--dataset cifar_test --n_classes 100```):
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval test_clf --dataset cifar_test
 ```
-To do OOD detection (on CIFAR100, with ```pxgrad``` [Approximate Mass] scoring function). Score functions available ```px```, ```py```, ```pxgrad```.
+To do OOD detection (on cifar100, with ```pxgrad``` [Approximate Mass] scoring function). Score functions available ```px```, ```py```, ```pxgrad```.
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval OOD --score_fn pxgrad --ood_dataset cifar_100
 ```
@@ -26,11 +26,11 @@ To generate a histogram of OOD scores like Table 2
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval logp_hist --datasets cifar10 svhn --save_dir /YOUR/HIST/FOLDER
 ```
-To calculate energies for a data set and save as ```energies.csv```
+To calculate energies for a data set and save as ```energies.csv``` (for cifar10, for cifar100 use ```--dataset cifar_test --n_classes 100```):
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval pri_energy --dataset cifar_test --save_dir /YOUR/SAVE/DIR 
 ```
-To calculate the binned calibration and save as ```calibration.csv```
+To calculate the binned calibration and save as ```calibration.csv``` (for cifar10, for cifar100 use ```--dataset cifar_test --n_classes 100```):
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval calibration --dataset cifar_test --save_dir /YOUR/SAVE/DIR
 ```
