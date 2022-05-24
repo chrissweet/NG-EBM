@@ -12,6 +12,8 @@ To train a model on CIFAR10 or CIFAR100, modified for the NG-EBM paper (choice f
 python train_wrn_ebm.py --lr .0001 --dataset cifar10 --optimizer adam --energy_variance_loss 1.0 --energy_derivative_loss 1.0 --p_x_weight 0.0 --p_y_given_x_weight 1.0 --p_x_y_weight 0.0 --sigma .03 --width 10 --depth 28 --save_dir /YOUR/SAVE/DIR --warmup_iters 1000
 ```
 
+Seed can be chosen with ```--seed [int]```.
+
 ### Evaluation
 
 To evaluate the classifier on cifar10 (for cifar100 use ```--dataset cifar100_test --n_classes 100```):
@@ -48,3 +50,8 @@ To run L2 attacks on NG-EBM. Example for cifar10, for cifar100 use ```--dataset 
 python attack_model.py --start_batch 0 --end_batch 6 --load_path /cloud_storage/BEST_EBM.pt --exp_name rerun_ebm_1_step_5_dup_l2_no_sigma_REDO --n_steps_refine 1 --distance L2 --random_init --n_dup_chains 5 --sigma 0.0 --base_dir /cloud_storage/adv_results --attack_tries 1
  ```
  
+## Other dependancies
+python 3.8.0
+pytorch 1.9.0
+numpy 1.21.2
+pillow 8.2.0
