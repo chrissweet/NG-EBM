@@ -261,7 +261,11 @@ def OODAUC(f, args, device):
          lambda x: x + args.sigma * t.randn_like(x)]
     )
 
-    dset_real = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False)
+    if args.n_classes == 10:
+        dset_real = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False)
+    else:
+        dset_real = tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False)
+        
     dload_real = DataLoader(dset_real, batch_size=100, shuffle=False, num_workers=4, drop_last=False)
 
     if args.ood_dataset == "svhn":
