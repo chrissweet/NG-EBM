@@ -368,7 +368,7 @@ def test_clf(f, args, device):
     loss = np.mean(losses)
     correct = np.mean(corrects)
     t.save({"losses": losses, "corrects": corrects, "pys": pys}, os.path.join(args.save_dir, "vals.pt"))
-    print(loss, correct)
+    print("Loss", loss, "accuracy", correct)
 
 def pri_energy(f, args, device):
     transform_test = tr.Compose(
@@ -423,7 +423,7 @@ def pri_energy(f, args, device):
     e_mean = np.mean(energies)
     e_var = np.var(energies)
     
-    print(e_mean, e_var, np.sqrt(e_var))
+    print("Mean energy", e_mean, "energy SD", np.sqrt(e_var))
     
     # save energies in a text file
     import pandas as pd     
@@ -577,7 +577,7 @@ if __name__ == "__main__":
     parser.add_argument("--sgld_lr", type=float, default=1.0)
     parser.add_argument("--sgld_std", type=float, default=1e-2)
     # logging + evaluation
-    parser.add_argument("--save_dir", type=str, default='YOUR_SAVE_PATH_BUDDDDDDYYYYYYY')
+    parser.add_argument("--save_dir", type=str, default='YOUR_SAVE_PATH')
     parser.add_argument("--print_every", type=int, default=100)
     parser.add_argument("--n_sample_steps", type=int, default=100)
     parser.add_argument("--load_path", type=str, default=None)
