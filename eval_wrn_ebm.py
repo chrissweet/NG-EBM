@@ -453,7 +453,7 @@ def calibration(f, args, device):
         dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False)
     elif args.dataset == "svhn_train":
         dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="train") 
-    elif args.dataset == "cifar_100":
+    elif args.dataset == "cifar100_test":
         dset = tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False)
     else:  # args.dataset == "svhn_test":
         dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="test")
@@ -514,6 +514,8 @@ def main(args):
         t.cuda.manual_seed_all(seed)
 
     device = t.device('cuda' if t.cuda.is_available() else 'cpu')
+    
+    print("Number of classes", args.n_classes)
 
     model_cls = F if args.uncond else CCF
     f = model_cls(args.depth, args.width, args.norm, n_classes=args.n_classes)
