@@ -45,7 +45,7 @@ def remove_module_state_dict(state_dict):
 # ------------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
 # training
-parser.add_argument('--dataset', type=str, default='cifar')
+parser.add_argument('--dataset', type=str, default='cifar10')
 parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument("--norm", type=str, default=None,
                     choices=[None, "norm", "batch", "instance", "layer", "act"])
@@ -116,7 +116,7 @@ model_attack_wrapper = gradient_attack_wrapper
 transformer_train = transforms.Compose([transforms.ToTensor()])
 transformer_test = transforms.Compose([transforms.ToTensor()])
 
-if args.dataset == 'cifar':
+if args.dataset == 'cifar10':
     data_loader = torch.utils.data.DataLoader(datasets.CIFAR10(data_dir, train=False,
                                                             transform=transformer_test, download=True),
                                             batch_size=args.batch_size, shuffle=False, num_workers=10)
