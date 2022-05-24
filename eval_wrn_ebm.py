@@ -321,7 +321,7 @@ def OODAUC(f, args, device):
     scores = np.concatenate([real_scores, fake_scores])
     labels = np.concatenate([real_labels, fake_labels])
     score = sklearn.metrics.roc_auc_score(labels, scores)
-    print("OOD score", score)
+    print("OOD with score function", args.score_fn, score)
 
 
 def test_clf(f, args, device):
