@@ -12,7 +12,7 @@ To train a model on CIFAR10 or CIFAR100, modified for the NG-EBM paper (choice f
 python train_wrn_ebm.py --lr .0001 --dataset cifar10 --optimizer adam --energy_variance_loss 1.0 --energy_derivative_loss 1.0 --p_x_weight 0.0 --p_y_given_x_weight 1.0 --p_x_y_weight 0.0 --sigma .03 --width 10 --depth 28 --save_dir /YOUR/SAVE/DIR --warmup_iters 1000
 ```
 
-Seed can be chosen with ```--seed [int]```.
+Seed can be chosen with ```--seed [int]```. Seeds chosen for the paper were 0101, 0202, 0303, 0404, and 0505.
 
 ### Evaluation
 
