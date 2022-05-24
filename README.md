@@ -52,6 +52,9 @@ python attack_model.py --start_batch 0 --end_batch 6 --load_path /cloud_storage/
  
 ## Other dependancies
 python 3.8.0
+
 pytorch 1.9.0
+
 numpy 1.21.2
+
 pillow 8.2.0
