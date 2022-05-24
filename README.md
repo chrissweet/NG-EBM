@@ -18,7 +18,7 @@ To evaluate the classifier (on cifar10, for cifar100 use ```--dataset cifar100_t
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval test_clf --dataset cifar_test
 ```
-To do OOD detection (on cifar100, with ```pxgrad``` [Approximate Mass] scoring function). Score functions available ```px```, ```py```, ```pxgrad```.
+To do OOD detection (on cifar100, with ```pxgrad``` [Approximate Mass] scoring function). Score functions available ```px```, ```py```, ```pxgrad```. Example for cifar10, for cifar100 use ```--ood_dataset svhn --n_classes 100```:
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval OOD --score_fn pxgrad --ood_dataset cifar_100
 ```
