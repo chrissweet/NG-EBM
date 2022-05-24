@@ -9,6 +9,7 @@ parser.add_argument('--distance', type=str, default='L2')
 parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--num_batch', type=int, default=5)
 parser.add_argument('--dataset', type=str, default='cifar10')
+parser.add_argument('--attack_file', type=str, default="./adversarials_batch_0_cfar10_L2.npy")
 
 args = parser.parse_args()
 
@@ -58,18 +59,21 @@ def find_epsilons(adversaries_rl_name, args_distance, args_batch_size, num_batch
     return eps_mean/num_batch, acc_mean
     
 # plot results
-eps_ed, acc_ed = find_epsilons("./experiment_attack/adversarials_batch_0_cfar10_L2.npy", args.distance, args.batch_size, args.num_batch)
+eps_ed, acc_ed = find_epsilons(args.attack_file, args.distance, args.batch_size, args.num_batch)
 
 plt.plot(eps_ed, acc_ed * 100, label="NG-EBM")
 
 plt.legend(loc="upper right")
 
-plt.xlim([0,250])
+if args.distance == 'L2':
+    plt.xlim([0,250])
+else:
+    plt.xlim([0,20])
 
 plt.xlabel("epsilon")
 plt.ylabel("accuracy")
-plt.title("Adversarial attack " + args.dataset + ", norm " + args.distance +".")
+plt.title("Adversarial attack " + args.dataset + ", norm " + args.distance + ".")
 
-plt.savefig('adversarials__L2.png')
+plt.savefig("adversarials_" + args.dataset + "_" + args.distance + ".png")
 
 
