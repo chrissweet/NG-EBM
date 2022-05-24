@@ -22,7 +22,7 @@ To do OOD detection (on cifar100, with ```pxgrad``` [Approximate Mass] scoring f
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval OOD --score_fn pxgrad --ood_dataset cifar_100
 ```
-To generate a histogram of OOD scores like Table 2
+To generate a histogram of OOD scores like Table 2. Example for cifar10, for cifar100 use ```--datasets cifar100 svhn --n_classes 100```:
 ```markdown
 python eval_wrn_ebm.py --load_path /PATH/TO/YOUR/MODEL.pt --eval logp_hist --datasets cifar10 svhn --save_dir /YOUR/HIST/FOLDER
 ```
