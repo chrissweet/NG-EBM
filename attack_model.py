@@ -116,20 +116,29 @@ model_attack_wrapper = gradient_attack_wrapper
 transformer_train = transforms.Compose([transforms.ToTensor()])
 transformer_test = transforms.Compose([transforms.ToTensor()])
 
-data_loader = torch.utils.data.DataLoader(datasets.CIFAR10(data_dir, train=False,
-                                                           transform=transformer_test, download=True),
-                                          batch_size=args.batch_size, shuffle=False, num_workers=10)
-init_loader = torch.utils.data.DataLoader(datasets.CIFAR10(data_dir, train=True,
-                                                           download=True, transform=transformer_train),
-                                          batch_size=args.init_batch_size, shuffle=True, num_workers=1)
+if args.dataset == 'cifar':
+    data_loader = torch.utils.data.DataLoader(datasets.CIFAR10(data_dir, train=False,
+                                                            transform=transformer_test, download=True),
+                                            batch_size=args.batch_size, shuffle=False, num_workers=10)
+    init_loader = torch.utils.data.DataLoader(datasets.CIFAR10(data_dir, train=True,
+                                                            download=True, transform=transformer_train),
+                                            batch_size=args.init_batch_size, shuffle=True, num_workers=1)
+else:
+    data_loader = torch.utils.data.DataLoader(datasets.CIFAR100(data_dir, train=False,
+                                                            transform=transformer_test, download=True),
+                                            batch_size=args.batch_size, shuffle=False, num_workers=10)
+    init_loader = torch.utils.data.DataLoader(datasets.CIFAR100(data_dir, train=True,
+                                                            download=True, transform=transformer_train),
+                                            batch_size=args.init_batch_size, shuffle=True, num_workers=1)
+
 
 
 class F(nn.Module):
-    def __init__(self, depth=28, width=2, norm=None):
+    def __init__(self, depth=28, width=2, norm=None, n_classes=10):
         super(F, self).__init__()
         self.f = wideresnet.Wide_ResNet(depth, width, norm=norm)
         self.energy_output = nn.Linear(self.f.last_dim, 1)
-        self.class_output = nn.Linear(self.f.last_dim, 10)
+        self.class_output = nn.Linear(self.f.last_dim, n_classes)
 
     def forward(self, x, y=None):
         penult_z = self.f(x)
@@ -141,8 +150,8 @@ class F(nn.Module):
 
 
 class CCF(F):
-    def __init__(self, depth=28, width=2, norm=None):
-        super(CCF, self).__init__(depth, width, norm=norm)
+    def __init__(self, depth=28, width=2, norm=None, n_classes=10):
+        super(CCF, self).__init__(depth, width, norm=norm, n_classes=n_classes)
 
     def forward(self, x, y=None):
         logits = self.classify(x)
@@ -153,7 +162,7 @@ class CCF(F):
 
 
 # construct model and ship to GPU
-f = CCF(args.depth, args.width, args.norm)
+f = CCF(args.depth, args.width, args.norm, n_classes=args.n_classes)
 print(args.load_path)
 print("loading model from {args.load_path}")
 ckpt_dict = torch.load(args.load_path)
@@ -238,7 +247,7 @@ criterion = foolbox.criteria.Misclassification()
 # Initiate attack and wrap model
 model_wrapped = model_attack_wrapper(model)
 fmodel = foolbox.models.PyTorchModel(
-    model_wrapped, bounds=(0., 1.), num_classes=10, device=device)
+    model_wrapped, bounds=(0., 1.), num_classes=args.n_classes, device=device)
 
 if args.distance == 'L2':
     distance = foolbox.distances.MeanSquaredDistance
