@@ -251,7 +251,7 @@ else:
 
 print('Starting...')
 for i, (img, label) in enumerate(data_loader):
-    print("i... ", i)
+    print("Batch", i + 1)
     adversaries = []
     if i < args.start_batch:
         continue
@@ -263,14 +263,14 @@ for i, (img, label) in enumerate(data_loader):
     top = top.data.cpu().numpy()
     pred = top[:, 0]
     for k in range(len(label)):
-        print("k... ", k)
+        print("Image", k + 1)
         im = img[k, :, :, :]
         orig_label = label[k].data.cpu().numpy()
         if pred[k] != orig_label:
             continue
         best_adv = None
         for ii in range(args.attack_tries):
-            print("ii... ", ii)
+            #print("ii... ", ii)
             try:
                 adversarial = attack(im, label=orig_label, unpack=False,
                                      random_start=True, iterations=args.n_steps_pgd_attack)
