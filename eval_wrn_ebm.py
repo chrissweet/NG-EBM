@@ -488,7 +488,7 @@ def calibration(f, args, device):
             
     #
     accu = np.divide(bin_correct,bin_total)
-    print("Bin data",np.sum(bin_total),accu,bins,bin_total)
+    #print("Bin data",np.sum(bin_total),accu,bins,bin_total)
     
     # calc ECE
     ECE = 0.0
