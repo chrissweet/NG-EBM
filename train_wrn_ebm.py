@@ -397,9 +397,9 @@ def main(args):
 
                 L += args.p_x_y_weight * l_p_x_y
 
-            # break if the loss diverged...easier for poppa to run experiments this way
+            # break if the loss diverged
             if L.abs().item() > 1e8:
-                print("BAD BOIIIIIIIIII")
+                print("Loss diverged!")
                 1/0
 
             optim.zero_grad()
@@ -449,7 +449,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Energy Based Models and Shit")
+    parser = argparse.ArgumentParser("Energy Based Models")
     parser.add_argument("--dataset", type=str, default="cifar10", choices=["cifar10", "svhn", "cifar100"])
     parser.add_argument("--data_root", type=str, default="../data")
     # optimization

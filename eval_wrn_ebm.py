@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Updated to include NG-EBM by Anonymous 05/19/22.
+
 import utils
 import torch as t, torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
