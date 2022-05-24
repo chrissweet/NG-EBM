@@ -344,6 +344,8 @@ def test_clf(f, args, device):
         dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=True)
     elif args.dataset == "cifar_test":
         dset = tv.datasets.CIFAR10(root="../data", transform=transform_test, download=True, train=False)
+    elif args.dataset == "cifar100_test":
+        dset = tv.datasets.CIFAR100(root="../data", transform=transform_test, download=True, train=False)
     elif args.dataset == "svhn_train":
         dset = tv.datasets.SVHN(root="../data", transform=transform_test, download=True, split="train")
     else:  # args.dataset == "svhn_test":
@@ -557,7 +559,7 @@ if __name__ == "__main__":
                         choices=["svhn", "cifar_interp", "cifar_100", "celeba"],
                         help="Chooses which dataset to compare against for OOD")
     parser.add_argument("--dataset", default="cifar_test", type=str,
-                        choices=["cifar_train", "cifar_test", "svhn_test", "svhn_train"],
+                        choices=["cifar_train", "cifar_test", "cifar100_test", "svhn_test", "svhn_train"],
                         help="Dataset to use when running test_clf for classification accuracy")
     parser.add_argument("--datasets", nargs="+", type=str, default=[],
                         help="The datasets you wanna use to generate a log p(x) histogram")
