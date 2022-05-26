@@ -153,7 +153,7 @@ def eval_classification(f, dload, device):
     corrects, losses = [], []
     for x_p_d, y_p_d in dload:
         x_p_d, y_p_d = x_p_d.to(device), y_p_d.to(device)
-        logits = f.classify(x_p_d)
+        logits = f(x_p_d)
         loss = nn.CrossEntropyLoss(reduce=False)(logits, y_p_d).cpu().numpy()
         losses.extend(loss)
         correct = (logits.max(1)[1] == y_p_d).float().cpu().numpy()
@@ -191,7 +191,7 @@ def main(args):
     f = wideresnet.Wide_ResNet(args.depth, args.width, norm=args.norm, dropout_rate=args.dropout_rate, num_classes=args.n_classes)
 
     f = f.to(device)
-    
+
     # optimizer
     params = f.class_output.parameters() if args.clf_only else f.parameters()
     if args.optimizer == "adam":
