@@ -190,6 +190,8 @@ def main(args):
 
     f = wideresnet.Wide_ResNet(args.depth, args.width, norm=args.norm, dropout_rate=args.dropout_rate, num_classes=args.n_classes)
 
+    f = f.to(device)
+    
     # optimizer
     params = f.class_output.parameters() if args.clf_only else f.parameters()
     if args.optimizer == "adam":
@@ -223,7 +225,7 @@ def main(args):
             L = 0.
 
             # get logits for calculations
-            logits = f.classify(x_lab)
+            logits = f(x_lab)
 
             ############################################################
             # NG-EBM. Maximize entropy by assuming equal probabilities #
