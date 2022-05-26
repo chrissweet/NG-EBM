@@ -292,7 +292,7 @@ def main(args):
                 if correct > best_valid_acc:
                     best_valid_acc = correct
                     print("Best Valid!: {}".format(correct))
-                    checkpoint(f, replay_buffer, "best_valid_ckpt.pt", args, device)
+                    checkpoint(f, "best_valid_ckpt.pt", args, device)
                 # test set
                 correct, loss = eval_classification(f, dload_test, device)
                 print("Epoch {}: Test Loss {}, Test Acc {}".format(epoch, loss, correct))
