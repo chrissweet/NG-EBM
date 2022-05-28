@@ -30,7 +30,7 @@ import json
 from tqdm import tqdm
 t.backends.cudnn.benchmark = True
 t.backends.cudnn.enabled = True
-seed = 1
+#seed = 1
 im_sz = 32
 n_ch = 3
 
@@ -112,7 +112,7 @@ def get_data(args):
     full_train = dataset_fn(True, transform_train)
     all_inds = list(range(len(full_train)))
     # set seed
-    np.random.seed(1234)
+    np.random.seed(args.seed)
     # shuffle
     np.random.shuffle(all_inds)
     # seperate out validation set
@@ -179,9 +179,9 @@ def main(args):
     if args.print_to_log:
         sys.stdout = open(f'{args.save_dir}/log.txt', 'w')
 
-    t.manual_seed(seed)
+    t.manual_seed(args.seed)
     if t.cuda.is_available():
-        t.cuda.manual_seed_all(seed)
+        t.cuda.manual_seed_all(args.seed)
 
     # datasets
     dload_train, dload_train_labeled, dload_valid, dload_test = get_data(args)
@@ -359,9 +359,11 @@ if __name__ == "__main__":
     parser.add_argument("--plot_uncond", action="store_true", help="If set, save unconditional samples")
     parser.add_argument("--n_valid", type=int, default=5000)
     # NG-EBM, \beta, \gamma in paper
-    parser.add_argument("--energy_variance_loss", type=float, default=1.)
-    parser.add_argument("--energy_derivative_loss", type=float, default=1.)
-
+    parser.add_argument("--energy_variance_loss", type=float, default=1., help="Loss coefficient for energy variance")
+    parser.add_argument("--energy_derivative_loss", type=float, default=1., help="Loss coefficient for norm of energy derivative")
+    # additions
+    parser.add_argument("--seed", type=int, default=1234, help="Random seed")
+    
     args = parser.parse_args()
     args.n_classes = 100 if args.dataset == "cifar100" else 10
     main(args)
